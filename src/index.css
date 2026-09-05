@@ -1,0 +1,182 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --spring-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+  --spring-snappy: cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+/* Custom Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.3);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.5);
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f1f3f6; /* Authentic Flipkart/Amazon crisp marketplace background */
+  color: #1f2937;
+}
+
+/* ============================================================
+   ADVANCED MOTION PHYSICS & ANIMATION SYSTEM
+   ============================================================ */
+
+/* Tactile Spring Hover on Product Cards */
+.product-card-motion {
+  transition: transform 0.28s var(--spring-bounce), box-shadow 0.28s var(--spring-smooth), border-color 0.2s ease;
+  will-change: transform, box-shadow;
+}
+
+.product-card-motion:hover {
+  transform: translateY(-5px) scale(1.015);
+  box-shadow: 0 16px 32px -8px rgba(15, 23, 42, 0.12), 0 4px 8px -2px rgba(15, 23, 42, 0.04);
+}
+
+/* Button Tap Press-Down Physics */
+.btn-spring {
+  transition: transform 0.12s ease, filter 0.15s ease, background-color 0.15s ease;
+  will-change: transform;
+}
+
+.btn-spring:active {
+  transform: scale(0.96);
+}
+
+/* Smooth Slide-Over Drawer with Spring Easing */
+@keyframes slideInRightSpring {
+  0% {
+    transform: translateX(100%);
+    opacity: 0.8;
+  }
+  70% {
+    transform: translateX(-1.5%);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.drawer-spring-in {
+  animation: slideInRightSpring 0.38s var(--spring-smooth) forwards;
+}
+
+/* Pop-In Dialog Modal */
+@keyframes popInModal {
+  0% {
+    transform: scale(0.92) translateY(10px);
+    opacity: 0;
+  }
+  65% {
+    transform: scale(1.02) translateY(-2px);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-spring-in {
+  animation: popInModal 0.32s var(--spring-bounce) forwards;
+}
+
+/* Floating Cart Badge Bounce on Item Added */
+@keyframes cartBounce {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.4) rotate(-8deg); }
+  65% { transform: scale(0.9) rotate(4deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+.animate-cart-bounce {
+  animation: cartBounce 0.45s var(--spring-bounce);
+}
+
+/* Shimmer Highlight Effect on Deals & Offers */
+@keyframes shimmerWave {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+.shimmer-badge {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-badge::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transform: translateX(-100%);
+  animation: shimmerWave 2.5s infinite;
+}
+
+/* Pulse Beacon for Non-Intrusive Assistant */
+@keyframes softBeacon {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(16, 185, 129, 0);
+  }
+}
+
+.beacon-pulse {
+  animation: softBeacon 2.2s infinite ease-in-out;
+}
+
+/* Flipkart/Amazon Authentic Badge Accents */
+.badge-assured {
+  background: linear-gradient(135deg, #2874f0 0%, #1e5bc6 100%);
+  color: #fff;
+  font-style: italic;
+  font-weight: 800;
+}
+
+.badge-deal {
+  background: #cc0c39;
+  color: #ffffff;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* Smooth Fade In */
+@keyframes fadeInSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-slide-up {
+  animation: fadeInSlideUp 0.28s var(--spring-smooth) forwards;
+}
