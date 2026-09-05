@@ -92,6 +92,23 @@ export default function CustomerMarket({
     }
   };
 
+  const executeSearch = async (queryText) => {
+    setSearchQuery(queryText);
+    setSelectedProduct(null);
+    try {
+      setLoading(true);
+      const res = await fetch(`/api/products?q=${encodeURIComponent(queryText)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setProductsList(data.products || productsFallback);
+      }
+    } catch (err) {
+      console.warn("Search fallback:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Behavioral Logger helper
   const logAction = async (actionType, prodId = null, details = {}) => {
     const event = {
@@ -160,14 +177,18 @@ export default function CustomerMarket({
       });
       if (res.ok) {
         const data = await res.json();
-        setProductsList(data.matches);
+        if (data.matches && data.matches.length > 0) {
+          setProductsList(data.matches);
+        } else {
+          executeSearch(searchQuery);
+        }
         setAiChatMessages(prev => [
           ...prev,
           { role: 'user', text: searchQuery, timestamp: new Date().toLocaleTimeString() },
           {
             role: 'assistant',
-            text: `I understood your intent as "${data.intent.dominantIntent}". Found ${data.matches.length} matching products for you!`,
-            suggestions: data.matches.slice(0, 3),
+            text: `I understood your intent as "${data.intent.dominantIntent}". Found ${data.matches ? data.matches.length : 0} matching options.`,
+            suggestions: (data.matches && data.matches.length > 0) ? data.matches.slice(0, 3) : productsFallback.slice(0, 3),
             timestamp: new Date().toLocaleTimeString()
           }
         ]);
@@ -179,13 +200,7 @@ export default function CustomerMarket({
     }
 
     // Client fallback search
-    const q = searchQuery.toLowerCase();
-    const filtered = productsFallback.filter(p =>
-      p.name.toLowerCase().includes(q) ||
-      p.brand.toLowerCase().includes(q) ||
-      p.tags.some(t => t.toLowerCase().includes(q))
-    );
-    setProductsList(filtered);
+    executeSearch(searchQuery);
   };
 
   // Add to cart with spring animation
@@ -753,10 +768,7 @@ export default function CustomerMarket({
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <button 
-                    onClick={() => {
-                      setSearchQuery("laptop for programming under 70000");
-                      fetchProducts();
-                    }}
+                    onClick={() => executeSearch("laptop for programming under 70000")}
                     className="bg-amber-400 hover:bg-amber-500 text-slate-900 font-extrabold px-5 py-2.5 rounded-xl text-xs shadow transition btn-spring flex items-center gap-1.5"
                   >
                     <span>Try: "Programming Laptop &lt; ₹70,000"</span>

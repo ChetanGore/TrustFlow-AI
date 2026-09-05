@@ -107,14 +107,51 @@ app.get('/api/products', (req, res) => {
   }
 
   if (q) {
-    const query = q.toLowerCase().trim();
-    results = results.filter(p =>
-      p.name.toLowerCase().includes(query) ||
-      p.brand.toLowerCase().includes(query) ||
-      p.category.toLowerCase().includes(query) ||
-      p.description.toLowerCase().includes(query) ||
-      p.tags.some(t => t.toLowerCase().includes(query))
-    );
+    const rawQuery = q.toLowerCase().trim();
+    let queryText = rawQuery;
+
+    // 1. Extract price constraints from natural language (e.g. "under 70000", "under ₹70,000", "< 70k")
+    const priceMatch = rawQuery.match(/(?:under|below|<|less than)\s*(?:₹|rs\.?|inr)?\s*(\d+)(k)?/i);
+    let extractedMaxPrice = null;
+    if (priceMatch) {
+      let num = parseInt(priceMatch[1], 10);
+      if (priceMatch[2]) num *= 1000;
+      extractedMaxPrice = num;
+      // Filter out prices exceeding extracted limit
+      results = results.filter(p => p.price <= extractedMaxPrice);
+      // Remove the price phrase from query text for keyword matching
+      queryText = queryText.replace(priceMatch[0], ' ').trim();
+    }
+
+    // 2. Tokenize remaining query into keywords, filtering out filler words
+    const stopWords = new Set(['for', 'a', 'an', 'the', 'with', 'need', 'i', 'want', 'buy', 'best', 'good', 'show', 'me', 'in', 'and']);
+    const tokens = queryText.split(/[\s,]+/).map(t => t.trim()).filter(t => t.length > 1 && !stopWords.has(t));
+
+    if (tokens.length > 0) {
+      // Score and match products
+      const scored = results.map(p => {
+        let score = 0;
+        const nameLower = p.name.toLowerCase();
+        const catLower = p.category.toLowerCase();
+        const brandLower = p.brand.toLowerCase();
+        const descLower = p.description.toLowerCase();
+        const tagsLower = p.tags.map(t => t.toLowerCase());
+
+        for (const token of tokens) {
+          if (nameLower.includes(token)) score += 10;
+          if (catLower.includes(token)) score += 8;
+          if (brandLower.includes(token)) score += 6;
+          if (tagsLower.some(t => t.includes(token))) score += 5;
+          if (descLower.includes(token)) score += 2;
+        }
+        return { product: p, score };
+      });
+
+      const matched = scored.filter(s => s.score > 0).sort((a, b) => b.score - a.score).map(s => s.product);
+      if (matched.length > 0) {
+        results = matched;
+      }
+    }
   }
 
   // Sorting
@@ -639,6 +676,6 @@ app.post('/api/demo/reset', (req, res) => {
 });
 
 // Start Express Server
-app.listen(PORT, () => {
-  console.log(`[TrustFlow AI Backend] Server running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`[TrustFlow AI Backend] Server running on http://127.0.0.1:${PORT}`);
 });
